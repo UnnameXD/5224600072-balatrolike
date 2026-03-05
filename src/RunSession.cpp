@@ -1,6 +1,7 @@
 #include "RunSession.h"
 #include "Card.h"
 #include "PerkFactory.h"
+#include "Shop.h"
 
 #include <iostream>
 #include <vector>
@@ -10,34 +11,31 @@ void RunSession::run()
 {
     int playerHP = 63;
     int round = 1;
+    int cash = 0;
 
     std::vector<Perk*> perks;
 
-    // STARTING PERK GACHA
     Perk* startPerk = PerkFactory::createStartingPerk();
 
-    if(startPerk != nullptr)
+    if(startPerk!=nullptr)
     {
         perks.push_back(startPerk);
-
-        std::cout << "Starting Perk: "
-                  << startPerk->getName()
-                  << "\n";
+        std::cout<<"Starting Perk: "<<startPerk->getName()<<"\n";
     }
     else
     {
-        std::cout << "No starting perk.\n";
+        std::cout<<"No starting perk\n";
     }
 
-    while(playerHP > 0)
+    while(playerHP>0)
     {
-        int dealerHP = 12 + (round * 5);
+        int dealerHP = 12 + round*5;
 
-        std::cout << "\n====================\n";
-        std::cout << "ROUND " << round << "\n";
-        std::cout << "Dealer HP: " << dealerHP << "\n";
+        std::cout<<"\n====================\n";
+        std::cout<<"ROUND "<<round<<"\n";
+        std::cout<<"Dealer HP: "<<dealerHP<<"\n";
 
-        while(playerHP > 0 && dealerHP > 0)
+        while(playerHP>0 && dealerHP>0)
         {
             std::vector<Card> player;
             std::vector<Card> dealer;
@@ -55,7 +53,6 @@ void RunSession::run()
 
             int playerTotal=0;
 
-            // PLAYER TURN
             while(true)
             {
                 std::cout<<"\nDealer Cards: ";
@@ -78,20 +75,13 @@ void RunSession::run()
                 std::cin>>choice;
 
                 if(choice=='h')
-                {
                     player.push_back(drawCard());
-                }
                 else
-                {
                     break;
-                }
             }
 
-            // DEALER TURN
             while(calculateTotal(dealer)<17)
-            {
                 dealer.push_back(drawCard());
-            }
 
             std::cout<<"\n=== ROUND RESULT ===\n";
 
@@ -109,90 +99,73 @@ void RunSession::run()
 
             std::cout<<"Your Total: "<<playerTotal<<"\n";
 
-            // BASE DAMAGE
             int damage = playerTotal;
 
-            // APPLY ALL PERKS
             for(Perk* p : perks)
-            {
                 damage = p->modifyDamage(damage);
-            }
 
-            // RESULT SYSTEM
-            if(playerTotal <=21 && dealerTotal >21)
+            if(playerTotal<=21 && dealerTotal>21)
             {
                 dealerHP -= damage;
 
-                std::cout<<"\nDealer Bust!\n";
-                std::cout<<"Dealer takes "
-                         <<damage
-                         <<" damage\n";
+                std::cout<<"Dealer Bust!\n";
+                std::cout<<"Dealer takes "<<damage<<" damage\n";
             }
 
-            else if(playerTotal >21)
+            else if(playerTotal>21)
             {
                 playerHP -= dealerTotal;
 
-                std::cout<<"\nYou Bust!\n";
-                std::cout<<"You take "
-                         <<dealerTotal
-                         <<" damage\n";
+                std::cout<<"You Bust!\n";
+                std::cout<<"You take "<<dealerTotal<<" damage\n";
             }
 
-            else if(playerTotal > dealerTotal)
+            else if(playerTotal>dealerTotal)
             {
                 dealerHP -= damage;
 
-                std::cout<<"\nYou Win Round!\n";
-                std::cout<<"Dealer takes "
-                         <<damage
-                         <<" damage\n";
+                std::cout<<"You Win Round!\n";
+                std::cout<<"Dealer takes "<<damage<<" damage\n";
             }
 
-            else if(playerTotal < dealerTotal)
+            else if(playerTotal<dealerTotal)
             {
                 playerHP -= dealerTotal;
 
-                std::cout<<"\nDealer Wins Round!\n";
-                std::cout<<"You take "
-                         <<dealerTotal
-                         <<" damage\n";
+                std::cout<<"Dealer Wins Round!\n";
+                std::cout<<"You take "<<dealerTotal<<" damage\n";
             }
 
             else
             {
-                std::cout<<"\nDraw!\n";
+                std::cout<<"Draw\n";
             }
         }
 
-        if(playerHP <= 0)
+        if(playerHP<=0)
             break;
 
         std::cout<<"\nRound "<<round<<" cleared!\n";
 
-        // HEAL SYSTEM
         playerHP += 21;
 
-        std::cout<<"You heal 21 HP!\n";
+        std::cout<<"Heal 21 HP\n";
         std::cout<<"Current HP: "<<playerHP<<"\n";
+
+        int reward = 10 + round*5;
+
+        cash += reward;
+
+        std::cout<<"Earned "<<reward<<" cash\n";
+        std::cout<<"Total Cash: "<<cash<<"\n";
+
+        Shop::openShop(cash, perks);
 
         round++;
     }
 
     std::cout<<"\n===== GAME OVER =====\n";
 
-    if(playerHP <= 0)
-    {
-        std::cout<<"You Lose!\n";
-    }
-    else
-    {
-        std::cout<<"You Win!\n";
-    }
-
-    // CLEAN MEMORY
     for(Perk* p : perks)
-    {
         delete p;
-    }
 }

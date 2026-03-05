@@ -6,7 +6,11 @@
 class PerkFactory
 {
 public:
+
     static Perk* createStartingPerk();
+
+    static Perk* createShopPerk(int choice);
+
 };
 
 #endif
